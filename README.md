@@ -166,7 +166,7 @@ A larger flight area is preferable. Drones operating in close proximity contend 
 
 ## Operation
 
-The scripts in `scripts/` require Python 3 and [cflib](https://github.com/bitcraze/crazyflie-lib-python), the Bitcraze Crazyflie Python library.
+The scripts in `scripts/` require Python 3 and [cflib](https://github.com/bitcraze/crazyflie-lib-python), the Bitcraze Crazyflie Python library. Further detail is available in the [cflib installation instructions](https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/installation/install/).
 
 ```bash
 cd crazyflie-decentralized-flocking
@@ -176,7 +176,7 @@ source venv/bin/activate
 pip install cflib
 ```
 
-On Linux, the Crazyradio and the USB connected sniffer are not accessible to a normal user account by default, and cflib will fail to open them. The udev rules that grant access are described in the [cflib repository](https://github.com/bitcraze/crazyflie-lib-python). Install them before running any of the scripts, or the radio will appear to be missing.
+On Linux, the Crazyradio and the USB connected sniffer are not accessible to a normal user account by default, and cflib will fail to open them. Access is granted by adding the current user to the `plugdev` group and installing the Bitcraze udev rules in `/etc/udev/rules.d/`, as described in the [USB permissions guide](https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/installation/usb_permissions/). Complete this step before running any of the scripts, otherwise the radio will appear to be absent.
 
 Open `scripts/config.py` and set `DRONE_URIS` to the radio addresses of the drones in use, and `SNIFFER_URI` to the sniffer. The defaults correspond to six drones addressed `E7E7E7E701` through `E7E7E7E706`, with the sniffer on `usb://0`.
 
