@@ -79,6 +79,7 @@ enum State state = STATE_IDLE;
 
 // Landing to pad
 static uint32_t stabilizeEndTime_ms;
+static uint32_t landingDeadline_ms = 0;
 static float landingTimeCheckCharge_ms;
 
 static uint8_t my_id;
@@ -210,6 +211,13 @@ static bool shouldFlySpecialTrajectory()
     return (EXECUTE_TRAJ && (random_number == 0) && (my_id <= minimumFlyingCopterId) && noOneElseIsFlyingTrajectory);
 }
 
+static bool isAirborneState(const enum State st)
+{
+    return st == STATE_TAKING_OFF || st == STATE_HOVERING || st == STATE_GOING_TO_TRAJECTORY_START ||
+           st == STATE_EXECUTING_TRAJECTORY || st == STATE_GOING_TO_RANDOM_POINT || st == STATE_PREPARING_FOR_LAND ||
+           st == STATE_GOING_TO_PAD || st == STATE_LANDING || st == STATE_REPOSITION_ON_PAD;
+}
+
 static void stateTransition(xTimerHandle timer)
 {
     // In the following checks , sequence of checks is important
@@ -218,7 +226,7 @@ static void stateTransition(xTimerHandle timer)
     my_pos.y = getY();
     my_pos.z = getZ();
 
-    if (supervisorIsTumbled())
+    if (supervisorIsTumbled() || supervisorIsCrashed() || (isAirborneState(state) && !supervisorCanFly()))
     {
         state = STATE_CRASHED;
         ledSetRGB(RED_LED);
@@ -300,7 +308,7 @@ static void stateTransition(xTimerHandle timer)
                 ledSetRGB(RED_LED);
             }
         }
-        else if (now_ms > random_time_for_next_event_ms && noCopterFlyingAbove(my_pos))
+        else if (now_ms > random_time_for_next_event_ms && noCopterFlyingAbove(my_pos) && supervisorCanFly())
         {
             DEBUG_PRINT("Taking off...\n");
             startTakeOffSequence();
@@ -414,13 +422,14 @@ static void stateTransition(xTimerHandle timer)
         {
             DEBUG_PRINT("Over pad,starting lowering\n");
             disableCollisionAvoidance();
-            crtpCommanderHighLevelLand(padZ, LANDING_DURATION);
+            crtpCommanderHighLevelLand(padZ - LANDING_UNDERSHOOT, LANDING_DURATION);
+            landingDeadline_ms = now_ms + (uint32_t)(LANDING_DURATION * 1000.0f) + LANDED_WAIT_MS;
             state = STATE_LANDING;
         }
         break;
     case STATE_LANDING:
         ledSetRGB(RED_LED);
-        if (crtpCommanderHighLevelIsTrajectoryFinished())
+        if (crtpCommanderHighLevelIsTrajectoryFinished() && (my_pos.z < padZ + LANDED_Z_MARGIN || now_ms > landingDeadline_ms))
         {
             // if (outOfBounds(my_pos))
             // {
@@ -451,8 +460,7 @@ static void stateTransition(xTimerHandle timer)
             }
             else if (noCopterFlyingAbove(my_pos))
             {
-                if (supervisorRequestArming(true)){
-                vTaskDelay(500);
+                if (supervisorRequestArming(true) && supervisorCanFly()){
                 DEBUG_PRINT("Not charging. Try to reposition on pad.\n");
                 crtpCommanderHighLevelTakeoff(padZ + (LANDING_HEIGHT), 1.0);
                 state = STATE_REPOSITION_ON_PAD;

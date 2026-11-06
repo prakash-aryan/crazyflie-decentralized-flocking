@@ -1,9 +1,4 @@
-"""Enable flocking on every drone before a flight.
-
-Parameters live in RAM, so they reset to their compiled defaults on every reboot.
-Run this after flashing and after any power cycle, otherwise a drone will fall back
-to the stock random-waypoint roaming instead of flocking.
-"""
+import threading
 import time
 
 import cflib.crtp
@@ -22,9 +17,14 @@ def main():
             with SyncCrazyflie(uri, cf=Crazyflie(rw_cache="./cache")) as scf:
                 scf.cf.param.set_value("flock.enable", 1)
                 scf.cf.param.set_value("flock.form_r", FORMATION_RADIUS)
-                time.sleep(0.1)
+                time.sleep(0.2)
+                stored = []
+                for name in ("flock.enable", "flock.form_r"):
+                    done = threading.Event()
+                    scf.cf.param.persistent_store(name, lambda n, ok, s=stored, e=done: (s.append(ok), e.set()))
+                    done.wait(3)
                 armed.append(i)
-                print(f"id{i}: flocking enabled, form_r={FORMATION_RADIUS}")
+                print(f"id{i}: flocking enabled, form_r={FORMATION_RADIUS}, stored on drone: {all(stored) and len(stored) == 2}")
         except Exception as exc:
             print(f"id{i}: unreachable ({exc})")
         time.sleep(0.15)

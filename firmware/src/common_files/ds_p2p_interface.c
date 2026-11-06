@@ -32,6 +32,7 @@
 
 #include "ds_p2p_interface.h"
 #include "param_log_interface.h"
+#include "movement.h"
 
 #define THE_MAGIC_NUMBER 0xbc471117
 #define P2P_PORT 5
@@ -175,7 +176,7 @@ float decompressVoltage(uint8_t voltage){
 void printOtherCopters(void){
     for (int i = 0; i < MAX_ADDRESS; i++) {
         if (copters[i].state != STATE_UNKNOWN){
-            if (!peerLocalizationIsIDActive(i)){
+            if (!isPeerPositionFresh(i)){
                 DEBUG_PRINT("Copter %d is not active\n",i);
             }else{
                 peerLocalizationOtherPosition_t *pos = peerLocalizationGetPositionByID(i);

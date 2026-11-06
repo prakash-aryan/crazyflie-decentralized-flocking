@@ -60,6 +60,8 @@ bool hasLock();
 
 bool chargedForTakeoff();
 
+bool isPeerPositionFresh(uint8_t id);
+
 bool noCopterFlyingAbove(Position my_pos);
 
 void startTrajectory(Position my_pos);

@@ -130,10 +130,18 @@ bool chargedForTakeoff() {
   return getVoltage() > CHARGED_FOR_TAKEOFF_VOLTAGE;
 }
 
+bool isPeerPositionFresh(uint8_t id) {
+  if (!peerLocalizationIsIDActive(id)) {
+    return false;
+  }
+  peerLocalizationOtherPosition_t *other = peerLocalizationGetPositionByID(id);
+  return (xTaskGetTickCount() - other->pos.timestamp) < M2T(PEER_POSITION_TIMEOUT_MS);
+}
+
 bool noCopterFlyingAbove(Position my_pos) {
   for (uint8_t i = 0; i < MAX_ADDRESS; i++) {
 
-    if (peerLocalizationIsIDActive(i)) {
+    if (isPeerPositionFresh(i)) {
       Position other_pos = OTHER_PEER_LOCALIZATION_POS_TO_POSITION( peerLocalizationGetPositionByID(i) );
 
       if ( DISTANCE2D(my_pos, other_pos) < COPTER_FLYING_ABOVE_THRESHOLD) {
@@ -192,7 +200,7 @@ void startTrajectory(Position my_pos){
 	DEBUG_PRINT("Starting trajectory with duration %f\n", (double) duration);
 
   const bool relative = true;
-	crtpCommanderHighLevelStartTrajectory(traj_id, timescale, relative, false);
+	crtpCommanderHighLevelStartTrajectory(traj_id, timescale, relative, false, false);
 }
 
 

@@ -27,10 +27,10 @@
 
 #pragma once
 
-#define EXECUTE_TRAJ true
+#define EXECUTE_TRAJ false
 
 // Flight Settings
-#define TAKE_OFF_HEIGHT 1.8f
+#define TAKE_OFF_HEIGHT 1.0f
 #define INITIAL_DESIRED_FLYING_COPTERS 0
 #define CHARGED_FOR_TAKEOFF_VOLTAGE 4.0f
 
@@ -45,6 +45,7 @@
 #define WP_THRESHOLD              0.02f  //distance threshold to consider a waypoint reached
 #define WP_VEL_THRESHOLD          0.2f //velocity threshold to consider a waypoint reached
 #define REACHED_WP_TIMEOUT        4000 //ms
+#define PEER_POSITION_TIMEOUT_MS 400
 #define COPTER_FLYING_ABOVE_THRESHOLD 0.5f //radius of cylinder that defines if a copter is flying above
 
 
@@ -71,20 +72,23 @@
 #define MAX_PAD_ERR 0.01
 #define LANDING_HEIGHT 0.3f
 #define LANDING_DURATION 3.0f //sec
+#define LANDING_UNDERSHOOT 0.05f
+#define LANDED_Z_MARGIN 0.03f
+#define LANDED_WAIT_MS 2000
 #define GO_TO_PAD_HEIGHT 0.5f
 #define GO_TO_PAD_DURATION 3.0f //sec duration to go to charging pad
 #define STABILIZE_TIMEOUT 4000 //ms
 #define REACHED_CHARGING_PAD_TIMEOUT 20000 //ms
 
 // BOUNDS DEFINITIONS
-#define MIN_X_BOUND -0.7f
-#define MAX_X_BOUND 0.7f
+#define MIN_X_BOUND -0.4f
+#define MAX_X_BOUND 1.2f
 
 #define MIN_Y_BOUND -1.8f
 #define MAX_Y_BOUND 1.3f
 
 #define MIN_Z_BOUND 0.3f
-#define MAX_Z_BOUND  2.1f
+#define MAX_Z_BOUND  1.6f
 
 // getRandomPositionOnCircle or getRandomPositionOnBox
 // #define RANDOMIZATION_METHOD getRandomPositionOnCircle
